@@ -1,0 +1,35 @@
+{
+	"name": "TF2C Toolkit",
+	"version": "0.0.1",
+	"manifest_version": 2,
+	"description": "Add some unintended functionality to tf2center.",
+	"homepage_url": "http://steamcommunity.com/profiles/76561198040737975",
+	"icons": {
+		"16": "icons/icon16.png",
+		"48": "icons/icon48.png",
+		"128": "icons/icon128.png"
+	},
+	"default_locale": "en",
+	"background": {
+		"scripts": [
+			"src/bg/background.js"
+		],
+		"persistent": false
+	},
+	"permissions": [
+		"cookies",
+		"storage",
+		"https://tf2center.com/*"
+	],
+	"content_scripts": [{
+			"matches": [
+				"https://tf2center.com/*"
+			],
+			"js": [
+				"js/jquery/jquery.js",
+				"src/inject/content.js"
+			]
+		}
+	],
+	"web_accessible_resources": ["src/inject/inject.js"]
+}
