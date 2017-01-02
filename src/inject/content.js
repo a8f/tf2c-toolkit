@@ -4,24 +4,27 @@ chrome.extension.sendMessage({}, function (response) {
 				clearInterval(readyStateCheckInterval);
 				injectScript(chrome.extension.getURL('/src/inject/inject.js'), 'body');
 				chrome.storage.sync.get("users", function (items) {
-					// Add users to menu
-					var users = items;
+					var users = $.map(items, function (value, index) {
+							return [value];
+						});
+					users = users[0];
 					var newEle;
-					var newUser = false;
+					var newUser = true;
+
 					if (!$(".playerTopMenu ul:first").length) {
 						newEle = document.createElement('ul');
 						$(".playerTopMenu").append(newEle);
 					}
 					if (typeof users === "undefined") {
-						newUser = true;
+						users = [];
 					} else {
 						for (var i = 0; i < users.length; i++) {
 							if (users[i].id == getID()) {
-								newUser = true;
+								newUser = false;
 							} else {
 								newEle = document.createElement('li');
-								newEle.innerHTML = "<div class=\"icons navbarmenu prefs\"></div><a href=\"#\">" + users[i].name + "</a>";
-								$(".playerTopMenu ul:first").append(newEle).on("click", loadSession, user[i].session);
+								newEle.innerHTML = "<div class=\"icons navbarmenu prefs tkuser\"></div><a href=\"#\">" + users[i].name + "</a>";
+								$(".playerTopMenu ul:first").append(newEle); //.on("click", loadSession, users[i].session)
 							}
 						}
 					}
@@ -31,14 +34,27 @@ chrome.extension.sendMessage({}, function (response) {
 						newEle.innerHTML = "<div class=\"icons navbarmenu prefs\"></div><a href=\"#\">Save account</a>";
 						$(".playerTopMenu ul:first").append(newEle).on("click", function () {
 							saveCurrentUser();
-							location.reload();
+							window.href = window.location;
 						});
+					} else {
+						newEle = document.createElement('li');
+						newEle.innerHTML = "<div class=\"icons navbarmenu prefs\"></div><a href=\"#\">Switch account</a>";
+						$(".playerTopMenu ul:first").append(newEle).on("click", fakeLogout());
 					}
 
 					$(".playerTopMenu").on("click", function () {
-						expandOptions(typeof users === "undefined" ? 0 : users.length);
+						expandOptions(users.length);
 					});
-					$(".speechBubble").css("z-index", 0);
+
+					$(".tkuser").each(function (i, obj) {
+						//console.log(i + " " + users[i].name + " " + users[i].session);
+						//console.log(obj);
+						$(obj).parent().on("click", function () {
+							//console.log($(this));
+							loadSession(users[i].session);
+							//console.log(users[i].name + " " + users[i].session);
+						});
+					});
 				});
 			}
 		}, 10);
@@ -53,28 +69,45 @@ function User(name, id, session) {
 }
 
 // Never returns
-function loadSession(newCookie) {
-	chrome.extension.sendRequest({
-		cookie: newCookie
+function fakeLogout() {
+	saveCurrentUser();
+	saveCurrentUser();chrome.runtime.sendMessage({
+		cookie: null
+	}, function (response) {
+		window.href = window.location;
 	});
-	location.reload();
+}
+
+// Never returns
+function loadSession(newCookie) {
+	//console.log(newCookie);
+	chrome.runtime.sendMessage({
+		cookie: newCookie
+	}, function (response) {
+		if (typeof response.farewell == "undefined" || response.farewell == "ERROR") {
+			alert("Unable to load account");
+		} else {
+			window.href = window.location;
+		}
+	});
 }
 
 function expandOptions(userCount) {
-	console.log(userCount);
 	$(".playerTopMenu").toggleClass("active");
 	if ($(".playerTopMenu").is(".active")) {
 		$(".playerTopMenu .icons.carrot.grey").removeClass("down").addClass("up");
+		$(".speechBubble").css("z-index", 0);
 		$(".playerTopMenu").animate({
-			height: 137 + 30 * (userCount + 1) + "px"
-		}, 200);
+			height: (108 + 30 * (userCount )) + "px"
+		}, 200)
 	} else {
 		$(".playerTopMenu .icons.carrot.grey").removeClass("up").addClass("down");
 		$(".playerTopMenu").animate({
 			height: "45px"
-		}, 200);
+		}, 200, function () {
+			$(".speechBubble").css("z-index", 200)
+		})
 	}
-	$(".speechBubble").css("z-index", 0);
 }
 
 function saveSessionAndLogout() {
@@ -93,8 +126,10 @@ function injectScript(file, node) {
 function saveCurrentUser() {
 	var users;
 	chrome.storage.sync.get("users", function (items) {
-		users = items;
-
+		var users = $.map(items, function (value, index) {
+				return [value];
+			});
+		users = users[0];
 		if (typeof users === "undefined") {
 			users = [];
 		}
@@ -121,7 +156,10 @@ function saveCurrentUser() {
 function updateCurrentUser() {
 	chrome.storage.sync.get("users", function (items) {
 		if (!chrome.runtime.error) {
-			users = items;
+			var users = $.map(items, function (value, index) {
+					return [value];
+				});
+			users = users[0];
 			var changed = false;
 			for (var i = 0; i < users.length; i++) {
 				if (users[i].id == getID()) {
@@ -142,7 +180,10 @@ function updateCurrentUser() {
 function deleteUser(user) {
 	chrome.storage.sync.get("users", function (items) {
 		if (!chrome.runtime.error) {
-			users = items;
+			var users = $.map(items, function (value, index) {
+					return [value];
+				});
+			users = users[0];
 			for (var i = 0; i < users.length; i++) {
 				if (users[i].id == getID()) {
 					users.splice(i, 1);
