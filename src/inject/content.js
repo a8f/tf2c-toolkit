@@ -3,6 +3,7 @@ chrome.extension.sendMessage({}, function (response) {
 			if (document.readyState === "complete") {
 				clearInterval(readyStateCheckInterval);
 				injectScript(chrome.extension.getURL('/src/inject/inject.js'), 'body');
+				// Managing users
 				chrome.storage.sync.get("users", function (items) {
 					var users = $.map(items, function (value, index) {
 							return [value];
@@ -57,6 +58,9 @@ chrome.extension.sendMessage({}, function (response) {
 					});
 				});
 			}
+			// Stealing slots
+			//setInterval(makeSlotStealButtons, 2500); //TODO make this triggered instead of on a timer
+
 		}, 10);
 
 });
@@ -100,6 +104,18 @@ function loadSession(newCookie) {
 			window.location.reload(true);
 		}
 	});
+}
+
+function makeSlotStealButtons() {
+	if (/\d/.test(window.location) && (window.location.toString()).indexOf("lobbies") != -1) {
+		$(".playerSlot.filled").each(function (i, obj) {
+			var child = $(obj).children(".showOnHover");
+			if (child.length == 0) {
+				$(obj).append('<div class="showOnHover"></div>');
+			}
+			$(child).append('<button class="btn size32x32 green" id="slotSteal' + i + '" title="Camp slot"><div class="icons slot join green"></div></button>');
+		});
+	}
 }
 
 function expandOptions(userCount) {
