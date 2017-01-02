@@ -19,7 +19,8 @@
 	"permissions": [
 		"cookies",
 		"storage",
-		"https://tf2center.com/*"
+		"https://tf2center.com/*",
+		"http://tf2center.com/"
 	],
 	"content_scripts": [{
 			"matches": [

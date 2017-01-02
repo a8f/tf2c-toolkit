@@ -8,9 +8,10 @@ chrome.extension.sendMessage({}, function (response) {
 							return [value];
 						});
 					users = users[0];
+					console.log(users);
 					var newEle;
 					var newUser = true;
-
+					//clearSaveData();
 					if (!$(".playerTopMenu ul:first").length) {
 						newEle = document.createElement('ul');
 						$(".playerTopMenu").append(newEle);
@@ -28,29 +29,28 @@ chrome.extension.sendMessage({}, function (response) {
 							}
 						}
 					}
-
-					if (newUser) {
-						newEle = document.createElement('li');
-						newEle.innerHTML = "<div class=\"icons navbarmenu prefs\"></div><a href=\"#\">Save account</a>";
-						$(".playerTopMenu ul:first").append(newEle).on("click", function () {
-							saveCurrentUser();
-							window.href = window.location;
-						});
-					} else {
+					if (typeof getID() == "undefined") {
+						newEle = document.createElement("div");
+						newEle.className = "icons carrot grey down";
+						$(".playerTopMenu").prepend(newEle);
+						$(".speechBubble").css("z-index", 0)
+					} else if (!newUser) {
 						newEle = document.createElement('li');
 						newEle.innerHTML = "<div class=\"icons navbarmenu prefs\"></div><a href=\"#\">Switch account</a>";
-						$(".playerTopMenu ul:first").append(newEle).on("click", fakeLogout());
+						$(".playerTopMenu ul:first").append(newEle).on("click", fakeLogout);
+					} else {
+						newEle = document.createElement('li');
+						newEle.innerHTML = "<div class=\"icons navbarmenu prefs\"></div><a href=\"#\">Save account</a>";
+						$(".playerTopMenu ul:first").append(newEle).on("click", fakeLogout);
 					}
 
 					$(".playerTopMenu").on("click", function () {
-						expandOptions(users.length);
+						expandOptions(users.length + 1);
 					});
 
 					$(".tkuser").each(function (i, obj) {
-						//console.log(i + " " + users[i].name + " " + users[i].session);
-						//console.log(obj);
+						console.log(i + " " + users[i].name + " " + users[i].session);
 						$(obj).parent().on("click", function () {
-							//console.log($(this));
 							loadSession(users[i].session);
 							//console.log(users[i].name + " " + users[i].session);
 						});
@@ -71,13 +71,23 @@ function User(name, id, session) {
 // Never returns
 function fakeLogout() {
 	saveCurrentUser();
-	saveCurrentUser();chrome.runtime.sendMessage({
-		cookie: null
+	chrome.runtime.sendMessage({
+		cookie: null,
+		clearCookies: true
 	}, function (response) {
-		window.href = window.location;
+		window.location.reload(true);
 	});
 }
 
+function clearSaveData() {
+	if (confirm("Really delete all local user data?")) {
+		chrome.storage.sync.set({
+			'users': []
+		}, function () {
+			console.log("data cleared");
+		});
+	}
+}
 // Never returns
 function loadSession(newCookie) {
 	//console.log(newCookie);
@@ -87,7 +97,7 @@ function loadSession(newCookie) {
 		if (typeof response.farewell == "undefined" || response.farewell == "ERROR") {
 			alert("Unable to load account");
 		} else {
-			window.href = window.location;
+			window.location.reload(true);
 		}
 	});
 }
@@ -98,7 +108,7 @@ function expandOptions(userCount) {
 		$(".playerTopMenu .icons.carrot.grey").removeClass("down").addClass("up");
 		$(".speechBubble").css("z-index", 0);
 		$(".playerTopMenu").animate({
-			height: (108 + 30 * (userCount )) + "px"
+			height: (137 + 30 * (userCount)) + "px" //TODO should be 108 if not logged into an acc with adv lobbies enabled
 		}, 200)
 	} else {
 		$(".playerTopMenu .icons.carrot.grey").removeClass("up").addClass("down");
@@ -110,11 +120,6 @@ function expandOptions(userCount) {
 	}
 }
 
-function saveSessionAndLogout() {
-	saveCurrentUser();
-	loadSession(null);
-}
-
 function injectScript(file, node) {
 	var th = document.getElementsByTagName(node)[0];
 	var s = document.createElement('script');
@@ -124,6 +129,8 @@ function injectScript(file, node) {
 }
 
 function saveCurrentUser() {
+	if (typeof getID() == "undefined" || getName() == "")
+		return;
 	var users;
 	chrome.storage.sync.get("users", function (items) {
 		var users = $.map(items, function (value, index) {
