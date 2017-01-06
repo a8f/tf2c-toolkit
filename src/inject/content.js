@@ -1,3 +1,6 @@
+var totalSlots = 0;
+var slotStatus = [];
+var waitingSlots = [];
 chrome.extension.sendMessage({}, function (response) {
 	var readyStateCheckInterval = setInterval(function () {
 			if (document.readyState === "complete") {
@@ -9,7 +12,7 @@ chrome.extension.sendMessage({}, function (response) {
 							return [value];
 						});
 					users = users[0];
-					console.log(users);
+					//console.log(users);
 					var newEle;
 					var newUser = true;
 					//clearSaveData();
@@ -50,7 +53,7 @@ chrome.extension.sendMessage({}, function (response) {
 					});
 
 					$(".tkuser").each(function (i, obj) {
-						console.log(i + " " + users[i].name + " " + users[i].session);
+						//console.log(i + " " + users[i].name + " " + users[i].session);
 						$(obj).parent().on("click", function () {
 							loadSession(users[i].session);
 							//console.log(users[i].name + " " + users[i].session);
@@ -59,11 +62,11 @@ chrome.extension.sendMessage({}, function (response) {
 				});
 			}
 			// Stealing slots
-			//setInterval(makeSlotStealButtons, 2500); //TODO make this triggered instead of on a timer
-
+            makeSlotStealButtons();
 		}, 10);
 
 });
+
 
 // User prototype
 function User(name, id, session) {
@@ -108,14 +111,40 @@ function loadSession(newCookie) {
 
 function makeSlotStealButtons() {
 	if (/\d/.test(window.location) && (window.location.toString()).indexOf("lobbies") != -1) {
-		$(".playerSlot.filled").each(function (i, obj) {
+            if (getName() == "")
+                    return;
+            $(".playerSlot").each(function (i, obj) {
 			var child = $(obj).children(".showOnHover");
 			if (child.length == 0) {
 				$(obj).append('<div class="showOnHover"></div>');
 			}
+            var child2 = $(child).children('[id^="slotSteal"]');
+            if (child2.length != 0) {
+                $(child2).remove();
+            }
 			$(child).append('<button class="btn size32x32 green" id="slotSteal' + i + '" title="Camp slot"><div class="icons slot join green"></div></button>');
+            $(child).on("click", waitForSlot(i));
+            setInterval(takeSlots, 100);
 		});
 	}
+}
+
+function waitForSlot(slot) {
+    if (waitingSlots.indexOf(slot) == -1) {
+        waitingSlots.push(slot);
+    }
+    else {
+        waitingSlots.splice(waitingSlots.indexOf(slot), 1);
+    }
+}
+
+function takeSlots() {
+    $(".playerSlot.empty").each(function (i, obj) {
+        if (waitingSlots.indexOf(i) != -1) {
+            $(obj).click();
+            waitingSlots = [];
+        }
+    });
 }
 
 function expandOptions(userCount) {
