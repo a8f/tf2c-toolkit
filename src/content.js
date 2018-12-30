@@ -67,7 +67,6 @@ chrome.extension.sendMessage({}, function (response) {
 
 });
 
-
 // User prototype
 function User(name, id, session) {
 	this.name = name;
@@ -95,14 +94,15 @@ function clearSaveData() {
 		});
 	}
 }
+
 // Never returns
 function loadSession(newCookie) {
 	//console.log(newCookie);
 	chrome.runtime.sendMessage({
 		cookie: newCookie
 	}, function (response) {
-		if (typeof response.farewell == "undefined" || response.farewell == "ERROR") {
-			alert("Unable to load account");
+		if (typeof response == "undefined" || typeof response.farewell == "undefined" || response.farewell == "ERROR") {
+			alert(chrome.i18n.getMessage("account_switch_fail"));
 		} else {
 			window.location.reload(true);
 		}

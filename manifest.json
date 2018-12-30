@@ -1,9 +1,9 @@
 {
 	"name": "TF2C Toolkit",
-	"version": "0.0.1",
+	"version": "0.0.2",
 	"manifest_version": 2,
-	"description": "Add some unintended functionality to tf2center.",
-	"homepage_url": "http://steamcommunity.com/profiles/76561198040737975",
+	"description": "Add extra functionality to tf2center.",
+	"homepage_url": "http://airstrafe.net",
 	"icons": {
 		"16": "icons/icon16.png",
 		"48": "icons/icon48.png",
@@ -12,7 +12,7 @@
 	"default_locale": "en",
 	"background": {
 		"scripts": [
-			"src/bg/background.js"
+			"src/background.js"
 		],
 		"persistent": false
 	},
@@ -20,15 +20,15 @@
 		"cookies",
 		"storage",
 		"https://tf2center.com/*",
-		"http://tf2center.com/"
+		"http://tf2center.com/*"
 	],
 	"content_scripts": [{
 			"matches": [
 				"https://tf2center.com/*"
 			],
 			"js": [
-				"js/jquery/jquery.js",
-				"src/inject/content.js"
+                "jquery/jquery-3.3.1.min.js",
+				"src/content.js"
 			]
 		}
 	],
