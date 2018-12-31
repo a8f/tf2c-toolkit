@@ -75,15 +75,14 @@ function makeSlotStealButtons() {
             }
             $(showOnHoverDiv).append('<button class="btn size32x32 green" id="slotSteal' + i + '" title="Camp"><div class="icons slot join green"></div></button>');
             $("#slotSteal" + i).click(function(){ waitForSlot(i); });
-            setInterval(takeSlots, 100);
-    });
+        });
+        setInterval(takeSlots, 100);
     }
 }
 
 function waitForSlot(slot) {
     var stealButton = $("#slotSteal" + slot);
     if (waitingSlots.indexOf(slot) == -1) {
-        console.log("waiting for " + slot);
         waitingSlots.push(slot);
         stealButton.attr("title", "Uncamp");
         stealButton.removeClass("green");
@@ -102,8 +101,8 @@ function waitForSlot(slot) {
 }
 
 function takeSlots() {
-    $(".playerSlot.empty").each(function (i, obj) {
-        if (waitingSlots.indexOf(i) != -1) {
+    $(".lobbySlot").each(function (i, obj) {
+        if ($(obj).hasClass("available") && waitingSlots.indexOf(i) != -1) {
             $(obj).click();
             // TODO verify slot was successfully taken
             waitingSlots = [];
