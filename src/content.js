@@ -76,7 +76,7 @@ function makeSlotStealButtons() {
             $(showOnHoverDiv).append('<button class="btn size32x32 green" id="slotSteal' + i + '" title="Camp"><div class="icons slot join green"></div></button>');
             $("#slotSteal" + i).click(function(){ waitForSlot(i); });
         });
-        setInterval(takeSlots, 100);
+        setInterval(takeSlots, 350);
     }
 }
 
